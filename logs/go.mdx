@@ -1,0 +1,89 @@
+---
+title: "Go"
+description: "Send structured logs from your Go applications to Vigilant"
+---
+
+## Setup
+
+1. Open the [dashboard](https://dashboard.vigilant.run/signup) and create an account
+
+2. Then from the [API tab](https://dashboard.vigilant.run/api), generate an API key
+
+## Installation
+
+Logging is handled through our SDK
+
+```bash
+go get github.com/vigilant-run/vigilant-golang
+```
+
+## Logger
+
+### Setup
+
+```go
+package main
+
+import (
+    "context"
+    "github.com/vigilant-run/vigilant-golang"
+)
+
+func main() {
+    loggerOptions := vigilant.NewLoggerOptions(
+        vigilant.WithLoggerURL("log.vigilant.run:4317"),
+        vigilant.WithLoggerToken("tk_1234567890"),  // PUT YOUR API KEY HERE
+        vigilant.WithLoggerName("service-name"),
+    )
+
+    logger := vigilant.NewLogger(loggerOptions)
+}
+```
+
+### Sending Logs
+
+<CodeGroup>
+```go Basic Logging
+// Basic logging with different levels
+logger.Info(ctx, "User logged in")
+logger.Warn(ctx, "Rate limit approaching")
+logger.Error(ctx, "Database connection failed")
+logger.Debug(ctx, "Processing request")
+```
+
+```go With Metadata
+// Add custom attributes to logs for additional context
+logger.Info(ctx, "Order processed", map[string]interface{}{
+    "orderId": "123",
+    "amount": 99.99,
+})
+```
+</CodeGroup>
+
+## Logger Attributes
+
+The logger is configured using functional options:
+
+| Option | Required | Description |
+| --- | --- | --- |
+| `WithLoggerURL` | Yes | The OTLP gRPC endpoint for Vigilant. Should be `log.vigilant.run:4317` unless specified otherwise. |
+| `WithLoggerToken` | Yes | Your Vigilant API token for authentication. Get this from the [API tab](https://dashboard.vigilant.run/api). |
+| `WithLoggerName` | Yes | Identifies your service in the logs. Used for filtering and organizing logs in the dashboard. |
+| `WithLoggerAttributes` | No | Default attributes added to every log message. Useful for adding environment, version, or other constant metadata. |
+
+Example configuration with all attributes:
+
+```go
+loggerOptions := vigilant.NewLoggerOptions(
+    vigilant.WithLoggerURL("log.vigilant.run:4317"),
+    vigilant.WithLoggerToken("tk_1234567890"),
+    vigilant.WithLoggerName("backend-server"),
+    vigilant.WithLoggerAttributes(map[string]interface{}{
+        "environment": "production",
+        "version": "1.0.0",
+        "region": "us-east-1",
+    }),
+)
+
+logger := vigilant.NewLogger(loggerOptions)
+```
